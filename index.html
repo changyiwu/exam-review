@@ -570,6 +570,7 @@
   let expiresAt = 0;
   let pairing = null;
   let pollTimer = null;
+  let retryTimer = null;
   let countdownTimer = null;
 
   const $ = id => document.getElementById(id);
@@ -619,21 +620,25 @@
     pollTimer = null;
   }
 
-  const PAIRING_MAX_RETRY = 4;
+  // 前 4 次退避快速重試（0.8→6.4 秒），處理「剛登出／倒數歸零導覽時 fetch 被中斷」
+  // 這種一秒內就會好的瞬間失敗；之後轉為固定 5 秒且**永不放棄**。
+  // 教室電視是無人看顧的裝置，網路過幾分鐘才恢復時它必須自己好，不能停在那裡等人來按。
+  const PAIRING_FAST_RETRY = 4;
+  const PAIRING_SLOW_RETRY_MS = 5000;
 
   async function startPairing(attempt) {
     attempt = attempt || 0;
     stopPolling();
+    clearTimeout(retryTimer);          // 避免手動按「重試」時跟排程中的重試疊成兩條鏈
     const box = $('qrcode-box');
     box.innerHTML = '<div class="qr-placeholder">產生登入 QR Code…</div>';
-    $('qr-status-text').textContent = attempt
-      ? '連線失敗，重試中（' + attempt + '/' + PAIRING_MAX_RETRY + '）...'
-      : '正在建立登入通道...';
+    $('qr-status-text').textContent = attempt ? '連線失敗，重試中...' : '正在建立登入通道...';
 
     try {
       const res = await api({ action: 'create_pairing' });
       if (!res.success) {
-        showPairingFailure(res.error || '無法建立登入通道');
+        // 後端有明確回覆（例如通道忙碌），這類要讓人看到原因，慢速重試即可
+        scheduleRetry(attempt, res.error || '無法建立登入通道');
         return;
       }
       pairing = res;
@@ -641,24 +646,26 @@
       $('qr-status-text').textContent = '等待手機掃描登入中...';
       pollTimer = setInterval(pollPairing, POLL_INTERVAL_MS);
     } catch (err) {
-      // 一次失敗就停在死畫面，課堂上等於要老師自己想到「重新整理」。
-      // 兩種常見狀況都會走到這裡：剛登出／倒數歸零重新導向時 fetch 被導覽中斷、
-      // 以及教室網路的短暫斷線。兩者都會自己好，所以退避重試。
-      if (attempt < PAIRING_MAX_RETRY) {
-        setTimeout(function () { startPairing(attempt + 1); }, 800 * Math.pow(2, attempt));
+      if (attempt < PAIRING_FAST_RETRY) {
+        retryTimer = setTimeout(function () { startPairing(attempt + 1); }, 800 * Math.pow(2, attempt));
         return;
       }
-      showPairingFailure('連線失敗，請確認網路');
+      scheduleRetry(attempt, '連線失敗，持續重試中…');
     }
   }
 
-  function showPairingFailure(message) {
+  function scheduleRetry(attempt, message) {
+    showPairingMessage(message);
+    retryTimer = setTimeout(function () { startPairing(attempt + 1); }, PAIRING_SLOW_RETRY_MS);
+  }
+
+  function showPairingMessage(message) {
     $('qrcode-box').innerHTML = '<div class="qr-placeholder">' + escapeHtml(message) + '</div>';
     $('qr-status-text').innerHTML = '';
     const retry = document.createElement('button');
     retry.type = 'button';
     retry.className = 'btn btn-secondary logout-btn';
-    retry.innerHTML = '<i class="fa-solid fa-rotate-right"></i> 重試';
+    retry.innerHTML = '<i class="fa-solid fa-rotate-right"></i> 立即重試';
     retry.addEventListener('click', function () { startPairing(0); });
     $('qr-status-text').appendChild(retry);
   }

@@ -13,6 +13,8 @@
 
 本專案原本是 `teaching-web` 裡的一頁，2026-08-30 拆成獨立專案。
 
+線上網址：<https://changyiwu.github.io/exam-review/>
+
 ## 關鍵時程
 
 <!-- 目前無固定時程 -->
@@ -23,9 +25,10 @@
 - [x] 階段二：前端頁面——QR 掃碼登入／直接登入／手機授權三種入口、檔案樹、倒數自動登出、手動登出
 - [x] 階段三：從 `teaching-web` 拆出為獨立專案，初始化至第 3 層級
 - [x] 階段四：登入後流程實測——手機授權解鎖、檔案樹渲染、點檔開新分頁（回 `docs.google.com/presentation/…`）、手動登出並確認 DOM 不殘留檔名
-- [x] 階段五：`create_pairing` 失敗改為退避重試＋重試按鈕（原本一次失敗就停在「請檢查網路」的死畫面）
-- [ ] 階段六：部署 GitHub Pages，並用**真的手機**掃 QR 跑完整流程（localhost 手機連不到，這段還沒驗過）
-- [ ] 階段七：回填 `teaching-web` 側邊欄 `tools-sidebar.js` 的 `href`（目前仍指向已不存在的 `teaching-web/exam-review.html`）
+- [x] 階段五：`create_pairing` 失敗改為「快速退避 4 次 → 固定 5 秒永不放棄」＋「立即重試」按鈕（原本一次失敗就停在死畫面）
+- [x] 階段六：部署 GitHub Pages（<https://changyiwu.github.io/exam-review/>），線上站台驗過 QR 生成、HTTPS、後端跨來源呼叫、手機授權畫面
+- [ ] 階段七：用**真的手機**掃 QR 跑一次完整流程（線上網址已可達，只差實機）
+- [ ] 階段八：`teaching-web` 側邊欄的 `href` 已在本機改為新網址，**尚未 commit／push**
 - [ ] 階段八：倒數歸零自動登出尚未實測（session 40 分鐘，等不到）；把 `SessionMinutes` 暫時改小即可驗
 
 ## 資料夾結構
@@ -98,6 +101,7 @@ exam-review/
 - **QR 函式庫一律本地載入**（`vendor/qrcode.min.js`），不要改用 CDN：它在登入關鍵路徑上，教室網路擋掉 CDN 就登不進去
 - **外部連結一律 `target="_blank" rel="noopener noreferrer"`**
 - **新增 GAS 端點時要分清楚免驗證與需驗證**：只有 `create_pairing`／`check_pairing`／`login` 免驗證，其餘一律先過 `isSessionValid`
+- **連線失敗的復原一律「先快後慢、但永不放棄」**：前 4 次退避（800×2ⁿ ms）處理一秒內就會好的瞬間失敗（登出／倒數重新導向時 fetch 被導覽中斷），之後轉固定 5 秒無限重試。**不可以設重試上限**——教室電視是無人看顧的裝置，網路過幾分鐘才恢復時它必須自己好，停在那裡等人來按等於當掉。另外保留一顆「立即重試」按鈕給不想等的人，且 `startPairing()` 進入時要 `clearTimeout(retryTimer)`，否則手動重試會跟排程中的重試疊成兩條鏈
 
 ## 工作約定
 
