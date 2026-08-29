@@ -571,6 +571,7 @@
   let pairing = null;
   let pollTimer = null;
   let retryTimer = null;
+  let pairingEpoch = 0;   // 每次重新申請通道就 +1，用來作廢還在飛行中的舊請求
   let countdownTimer = null;
 
   const $ = id => document.getElementById(id);
@@ -629,13 +630,20 @@
   async function startPairing(attempt) {
     attempt = attempt || 0;
     stopPolling();
-    clearTimeout(retryTimer);          // 避免手動按「重試」時跟排程中的重試疊成兩條鏈
+    clearTimeout(retryTimer);          // 取消「已排程」的重試
+
+    // 但 clearTimeout 取消不了「還在飛行中」的請求：它回來後仍會排一條新的鏈，
+    // 而過期的成功回應更糟——會把 pairing 覆蓋成舊通道，QR 就對不上真正在輪詢的那條。
+    // 用世代編號把舊回應整個作廢。
+    const epoch = ++pairingEpoch;
+
     const box = $('qrcode-box');
     box.innerHTML = '<div class="qr-placeholder">產生登入 QR Code…</div>';
     $('qr-status-text').textContent = attempt ? '連線失敗，重試中...' : '正在建立登入通道...';
 
     try {
       const res = await api({ action: 'create_pairing' });
+      if (epoch !== pairingEpoch) return;
       if (!res.success) {
         // 後端有明確回覆（例如通道忙碌），這類要讓人看到原因，慢速重試即可
         scheduleRetry(attempt, res.error || '無法建立登入通道');
@@ -646,6 +654,7 @@
       $('qr-status-text').textContent = '等待手機掃描登入中...';
       pollTimer = setInterval(pollPairing, POLL_INTERVAL_MS);
     } catch (err) {
+      if (epoch !== pairingEpoch) return;
       if (attempt < PAIRING_FAST_RETRY) {
         retryTimer = setTimeout(function () { startPairing(attempt + 1); }, 800 * Math.pow(2, attempt));
         return;
