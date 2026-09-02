@@ -36,7 +36,7 @@
 ```
 exam-review/
 ├─ index.html            # 前端全部（HTML＋CSS＋JS 單檔）
-├─ header-logo.webp      # 頁首圖示（複製自 teaching-web）
+├─ header-logo.svg       # 頁首圖示與分頁圖標（向量；本專案專屬）
 ├─ vendor/
 │  └─ qrcode.min.js      # QR 函式庫，本地載入（教室網路可能擋 CDN，而 QR 在登入關鍵路徑上）
 ├─ gas/                  # GAS 後端原始碼，由 clasp 推送
@@ -119,4 +119,5 @@ exam-review/
 - **`text-overflow: ellipsis` 對 inline 元素無效**：`<span>` 要先 `display: block` 才截得掉，否則長檔名會把整張卡片撐破（實測撐破 181px）。同排的 flex 項目還要補 `min-width: 0` 解掉 min-content 底線
 - **QR 函式庫會生成「一個內聯隱藏的 canvas ＋ 一張 img」**：CSS 只對 `img` 下樣式。若連 `canvas` 也寫 `display: block` 會冒出第二個 QR；反過來說，用 `querySelector('img, canvas')` 取到的是那個隱藏的 canvas，量出來會是 0×0，看起來像 QR 沒生成
 - **`min-height: 100vh` 的 flex 置中容器不會裁切過高的內容**（容器會跟著長高），不必為此改寫成 grid 彈簧。但若改成固定 `height` 就會裁，且上緣捲不到
+- **Logo 與 favicon 一律手寫 SVG，不用生圖技能**：圖標要在 16px 分頁圖標到登入畫面的大尺寸之間都清楚，點陣圖縮到 16px 就糊、色彩只能接近專案色票、微調只能整張重生。發光用 `radialGradient` 疊底，不要用 `feGaussianBlur`（favicon 的渲染路徑對濾鏡支援不一）。改完要在 16/32/64/180px 四檔都看過
 - 驗收登入後的流程需要真的通行碼；**不要向使用者索取通行碼**，改用「請使用者在自己的瀏覽器開 `?pair=<pairId>` 完成授權」，大螢幕分頁會自己解鎖。`pairId` 可從頁面每 3 秒一次的 `check_pairing` 請求 body 攔下來

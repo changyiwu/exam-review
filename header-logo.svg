@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="考卷檢討">
+  <defs>
+    <clipPath id="tile"><rect width="256" height="256" rx="52"/></clipPath>
+    <radialGradient id="violet" cx="24%" cy="24%" r="50%">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cyan" cx="82%" cy="82%" r="46%">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="shieldGlow">
+      <stop offset="0" stop-color="#38bdf8" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sheet" x1="0" y1="0" x2=".7" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".55" stop-color="#f2f1fa"/>
+      <stop offset="1" stop-color="#dcd9ee"/>
+    </linearGradient>
+    <linearGradient id="fold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c8c4e2"/>
+      <stop offset="1" stop-color="#eeecf7"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0" y1=".1" x2="1" y2=".9">
+      <stop offset="0" stop-color="#a855f7"/>
+      <stop offset=".5" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e9d5ff" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#a5f3fc" stop-opacity=".95"/>
+    </linearGradient>
+  </defs>
+
+  <g clip-path="url(#tile)">
+    <rect width="256" height="256" fill="#050415"/>
+    <rect width="256" height="256" fill="url(#violet)"/>
+    <rect width="256" height="256" fill="url(#cyan)"/>
+
+    <!-- 試卷 -->
+    <path d="M70 42L140 42L176 78L176 192C176 200 170 206 162 206L70 206C62 206 56 200 56 192L56 56C56 48 62 42 70 42Z" fill="url(#sheet)"/>
+    <path d="M140 42L176 78L150 78C144 78 140 74 140 68Z" fill="url(#fold)"/>
+    <g fill="#8f95bf">
+      <rect x="76" y="96" width="86" height="11" rx="5.5"/>
+      <rect x="76" y="122" width="74" height="11" rx="5.5"/>
+      <rect x="76" y="148" width="58" height="11" rx="5.5"/>
+    </g>
+
+    <!-- 盾牌 -->
+    <ellipse cx="184" cy="176" rx="74" ry="76" fill="url(#shieldGlow)"/>
+    <path d="M183 120L228 138C228 138 229 189 202 212C195 219 189 223 183 226C177 223 171 219 164 212C137 189 138 138 138 138Z" fill="url(#shield)" stroke="url(#rim)" stroke-width="4" stroke-linejoin="round"/>
+    <!-- 鑰匙孔 -->
+    <circle cx="183" cy="166" r="12" fill="#ffffff"/>
+    <path d="M178 172L172 197C171.4 200 173.4 202 176.4 202L189.6 202C192.6 202 194.6 200 194 197L188 172Z" fill="#ffffff"/>
+  </g>
+</svg>
